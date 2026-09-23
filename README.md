@@ -141,5 +141,3 @@ agents/loop-reviewer.md
 ## License
 
 MIT — see [LICENSE](LICENSE).
-
-Author: [mustafamese.com](https://www.mustafamese.com)
