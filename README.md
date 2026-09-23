@@ -116,11 +116,22 @@ registered, language-specific checks. They reach the agents through the briefs.
 A knowledge base (docs or a wiki linked from `CLAUDE.md`) is optional. With one, the planner cuts
 tasks along recorded decisions and module boundaries; without one, it derives them from the code.
 
+## How a rule gets in
+
+Every rule traces to a failure logged in a real run (the project's `.subagent-loop/lessons.md`). A candidate
+rule enters the skill or an agent definition only after a scenario test: a single-shot subagent reads the
+file and answers a situation that tempts the failure, old text as control and new text as treatment.
+Cheap pre-screen: `haiku`, 3 reps per arm. Confirmation for rules that shape behaviour (not checklist
+slots): the model that will actually run the rule (`sonnet` for dev/QA rules, the session model for
+orchestrator rules), 5 reps per arm, every answer read by a human or the orchestrator — never scored by
+grep alone. A rule the control already follows is not written. Structural additions (a checklist item, a
+report section, a fixed ledger line) go in on read-through plus one application scenario.
+
 ## Files it writes
 
 Everything goes under `<repo>/.subagent-loop/`. You may want to add it to `.gitignore`.
 
-- `progress.md` — the ledger: modes, width, decisions, task status, checkpoints. After a stop or a
+- `progress.md` — the ledger: modes, width, decisions, task status, checkpoints, one `Task N: fix round K (source)` line per fix round (the 3-round brake counts these). After a stop or a
   context compaction, the loop trusts this file and `git log` over its own memory.
 - `<phase>-task-N-brief.md`, `-report.md`, `-qa.md` — one brief, report and QA file per task.
 - The plan file and the Finish review's findings.
@@ -131,6 +142,7 @@ Everything goes under `<repo>/.subagent-loop/`. You may want to add it to `.giti
 skills/subagent-loop/SKILL.md                     the skill
 skills/subagent-loop/references/brief-template.md brief structure every dispatch uses
 skills/subagent-loop/references/direct-verify.md  orchestrator checklists (per task, plan, Finish)
+skills/subagent-loop/references/wavecheck.py      wave-table verifier (disjoint files, dependency order, tier)
 agents/loop-planner.md
 agents/loop-dev.md
 agents/loop-transcriber.md

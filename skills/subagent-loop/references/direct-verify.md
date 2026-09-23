@@ -68,5 +68,7 @@ wave-end docs tasks, tier stated. Then content:
   releasing persistent resources)? Per-task QA sees each module as correct in isolation.
 - Third-party imports: files an import unpacked — tracked, or ignored (`git check-ignore`)? A project
   file that references ignored third-party files is unrecoverable from a clean clone.
+- Environment-operation output: every file the ledger's wave-gate entries list as produced (generated assets,
+  imported packages, tool metadata) — tracked, ignored, or forgotten? Reconcile against `git status --short`.
 - Plan lines the dev silently corrected: compare plan pseudo-code to the diff.
 - Every build unit whose test files changed in the fix package: run in the functional gate before hand-off.
