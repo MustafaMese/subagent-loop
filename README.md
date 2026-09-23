@@ -52,7 +52,7 @@ that changes the project is a subagent dispatch.
 
 | Agent | Default model | Job | Edits the project? |
 | --- | --- | --- | --- |
-| `loop-planner` | fable, max effort | Writes or re-plans the wave table | No — only the plan file |
+| `loop-planner` | fable, xhigh effort | Writes or re-plans the wave table | No — only the plan file |
 | `loop-dev` | sonnet | Implements one task that needs judgment | Yes |
 | `loop-transcriber` | haiku | Applies a fully specified brief; reports BLOCKED instead of improvising | Yes |
 | `loop-qa` | sonnet | Adversarial review of one task | No Edit tool; writes only its findings file |
