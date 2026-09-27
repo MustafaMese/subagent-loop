@@ -12,6 +12,8 @@ contract (e.g. `.subagent-loop/gate.md`) adds language- and engine-specific grep
 2. **Build inclusion.** When the gate compiles from generated project files, compare the project file's
    source list to the task's owned files. A file that leaked in from another task's template compiles by
    accident when the references happen to suffice; a file that leaked out is never compiled at all.
+   Build-file references must mirror the module manifest; a reference only in the generated build file
+   is a false green (it compiles the build unit but the module manifest itself would not resolve).
 3. **Public surface.** For every new type, put its visibility (access modifiers or exports — e.g.
    `grep -n "public\|internal"` in C#) next to the contract's surface list. Ten seconds; catches the brief that re-told the contract wrongly.
 4. **Cross-module symbols.** Every symbol the brief names as a call target or as a field the task
@@ -39,6 +41,9 @@ contract (e.g. `.subagent-loop/gate.md`) adds language- and engine-specific grep
     list; they are findings about files the dev did not own.
 13. **After a docs task lands:** re-read the briefs of tasks that depended on it against the docs
     report's deviation list (renumbered contract items, moved sections) before dispatching them.
+14. **Count every assertion in the file, not the ones you remember.** When an auto decision
+    carries a test's assertions forward (a rename, a moved threshold), read the whole file and count — a
+    partial recollection undercounts and the missed assertions surface as a later fix round.
 
 ## Plan (before any dispatch; the plan is a claim too)
 
@@ -72,3 +77,8 @@ wave-end docs tasks, tier stated. Then content:
   imported packages, tool metadata) — tracked, ignored, or forgotten? Reconcile against `git status --short`.
 - Plan lines the dev silently corrected: compare plan pseudo-code to the diff.
 - Every build unit whose test files changed in the fix package: run in the functional gate before hand-off.
+- A reviewer's proposed fix is a claim, not an approved change: name which frozen
+  tests/fixtures it touches and check it against them before it becomes a dispatch.
+- A composition promise ("this container has/lacks field X") is accepted on a live probe, not on a fixture
+  — a fixture built by hand can omit an engine-level step (e.g. an entity-composition
+  framework silently forcing a referenced root into a different mode) that only a running instance exposes.

@@ -18,7 +18,11 @@ overwrite an earlier one. Sections, in order:
    - Facts about the disk (line numbers, ordering, existing names) are pasted from `grep`/`tail` output
      so the dev can check them — never "add at the top".
 6. **Tests** — for a test whose claim is "no violation → pass": the dev plants a violation, reports the
-   red, removes it. Lifecycle rules from the project contract are repeated as fixed lines.
+   red, removes it. Lifecycle rules from the project contract are repeated as fixed lines. Time-based
+   waits use wall-clock budgets, never frame counts. A measurement window states both ends: earliest
+   tick/moment the state can exist, latest tick/moment before it changes — one end alone lets the other
+   slip past review twice. Give the guard as code, not as a principle: a concrete expression (e.g. a
+   counter equality against the expected total), not a prose rule that can be re-violated the same way.
 7. **Gate** — the exact command with per-task paths. If the task's build chain includes another in-flight
    task's project, say so and name the errors to ignore.
 8. **Report path** and the deviation rule, verbatim:

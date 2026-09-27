@@ -22,6 +22,8 @@ Every mechanism line in a task spec names **who writes what to which data struct
 
 Pipelined execution needs gate points: name after which tasks the mutating/functional gate must run, and keep tasks joined by a project-reference chain out of the same wave or give each a gate that compiles only its own build unit.
 
+Registration lands in the same wave as the system it registers, or the plan names the non-runnable intermediate state. A system that compiles in one wave but is only added to a scheduling table, card, or manifest in a later wave leaves any build/scene that depends on that table unrunnable in between — either put the registration in the same wave, or say explicitly in the plan which waves cannot run the affected build and who is told.
+
 Every judgement the plan could not settle from the KB becomes an open question with your recommended answer; the orchestrator runs the interview with the user and sends the answers back to you to finalize. A plan that contradicts a sealed decision is not yours to resolve: flag it as a blocking question. Say which tier the loop should run at (S / M / L, per the subagent-loop skill's sizing rules) and why.
 
 ## Output contract (plan file)
