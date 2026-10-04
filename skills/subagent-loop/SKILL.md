@@ -103,6 +103,8 @@ All phases done, each through its gate or brakes: final whole-branch review by a
 
 Prompt contracts live in the `loop-*` agent definitions (inputs, rules, report format) and in `references/brief-template.md`. Dispatch prompts only fill them in: paths, gate command, attempt budget, deltas.
 
+When this loop runs in one of several long-lived sessions that share a single-instance resource (an editor, a device), the outer layer — coordinator, resource lock, compile handshake, exit conditions, shared-index commit hygiene — is in `references/multi-session.md`. It sits above this loop; it changes nothing inside it.
+
 ## Rationalization table
 
 | Excuse | Reality |
