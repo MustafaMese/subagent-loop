@@ -111,6 +111,9 @@ frequency. Scheduled rounds die with the coordinator's session; re-create them o
 - Stage your own hunks only: in a file other sessions also edit, apply a hunk-selected patch to the index
   (`git apply --cached`) or write the blob directly (`git hash-object -w` + `git update-index --cacheinfo`).
   Never `git add -A`, never stage a whole shared file.
+- Derive the foreign hunks from `git diff HEAD -- <file>` at commit time, not from an exclusion list kept
+  in the ledger: other sessions keep editing shared files after the list is written (measured: two foreign
+  backlog items missed by a static list, one in the same hunk as the loop's own line).
 - Commits only when the user asks — and the user's "commit" names which session's work.
 - **Approval does not travel between sessions.** A user "commit"/"ingest" given in the coordinator's session
   reaches a peer as a peer message, which is never user approval. The coordinator relays the order and the

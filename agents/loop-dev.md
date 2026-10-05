@@ -25,6 +25,7 @@ You will be given: a brief file path, a report file path, a compile/verification
 
 ## Gate discipline
 - Run the gate command exactly as given, from the directory it specifies. Judge the exit code directly — do not pipe through grep/tail in a way that masks failure.
+- Never shut down shared build servers or daemons (`build-server shutdown` and the like): other dispatches are compiling on them. A transient concurrency error the project contract names (e.g. a concurrent-build race) gets one rerun of the identical command before it counts as a failure.
 - If the gate fails: at most the given number of fix attempts (default 2), then STOP and report BLOCKED with what you learned — a precise BLOCKED report is a successful outcome.
 - Note which platform, configuration and flags the gate builds and runs under. Code the gate never compiles or executes (conditional compilation, platform branches, feature flags off in the gate config) must be flagged in your report as "unverified by gate" after careful eyeball verification.
 

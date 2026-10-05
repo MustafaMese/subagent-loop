@@ -3,8 +3,13 @@
 Usage: python3 references/wavecheck.py <plan.md> ["# Phase 2"]
 Checks: file sets inside a wave are disjoint; every dependency names an existing task in an earlier wave;
 the tier (S/M/L) is stated. Table headers may be English or Turkish. Exit 0 = clean, 1 = violations.
+Warns (no exit effect): a module manifest that does not exist yet (created by a task — e.g. `X.asmdef`,
+`package.json` dir name) whose name appears in the spec section of another task in the same or an earlier
+wave — that task cannot reference a module that is not built yet. Run from the repo root so existence checks work.
 Not checked (read it yourself): shared docs live only in wave-end docs tasks; gate points are named."""
-import fnmatch, re, sys
+import fnmatch, os, re, sys
+
+MANIFEST = (".asmdef", ".csproj")
 
 HEAD = {"task": ("task", "görev", "gorev"), "files": ("file", "dosya"), "deps": ("depend", "bağım", "bagim"),
         "wave": ("wave", "dalga")}
@@ -79,6 +84,26 @@ def main():
                 print(f"ORDER VIOLATION: {t} (wave {a['wave']}) -> {hit} (wave {tasks[hit]['wave']})"); bad += 1
     if not re.search(r"\b(tier|Tier)\b\s*[:*]*\s*\**\s*[SML]\b", text):
         print("TIER not stated"); bad += 1
+    # created modules: owned manifest paths that do not exist on disk yet
+    created = {}
+    for t, a in tasks.items():
+        for f in a["files"]:
+            if f.endswith(MANIFEST) and "*" not in f and not os.path.exists(f):
+                created[os.path.splitext(os.path.basename(f))[0]] = t
+    heads = [(m.start(), len(m.group(1)), m.group(0)) for m in re.finditer(r"(?m)^(#{2,6}) .*$", text)]
+    def spec_of(task):
+        for i, (pos, lvl, line) in enumerate(heads):
+            if re.search(r"(?<![\w.-])" + re.escape(task) + r"(?![\w.-])", line):
+                end = next((p for p, l, _ in heads[i + 1:] if l <= lvl), len(text))
+                return text[pos:end]
+        return ""
+    for name, owner in created.items():
+        for t, a in tasks.items():
+            if t == owner or a["wave"] > tasks[owner]["wave"]:
+                continue
+            if re.search(r"(?<![\w.])" + re.escape(name) + r"(?![\w])", spec_of(t)):
+                print(f"WARN module created in wave {tasks[owner]['wave']} by {owner}: `{name}` is named in "
+                      f"{t}'s spec (wave {a['wave']}) — a reference would not compile yet")
     waves = {}
     for t, a in tasks.items():
         waves.setdefault(a["wave"], []).append(t)

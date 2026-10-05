@@ -44,6 +44,16 @@ contract (e.g. `.subagent-loop/gate.md`) adds language- and engine-specific grep
 14. **Count every assertion in the file, not the ones you remember.** When an auto decision
     carries a test's assertions forward (a rename, a moved threshold), read the whole file and count — a
     partial recollection undercounts and the missed assertions surface as a later fix round.
+15. **Containers the framework does not track.** A shared/singleton data component that holds its own
+    native or unmanaged container (array, map) is invisible to the framework's dependency tracking: the
+    writer must declare write access explicitly, readers read-only, and every test fixture completes
+    in-flight jobs before disposing it. A missing declaration is a race in a build and a safety exception
+    in the editor — and a fixture that "happens to pass" only because another system completes dependencies
+    first is not evidence.
+16. **Byte-equality over padded structs.** A determinism test that compares raw bytes of a struct with
+    padding fails intermittently: padding is refilled by every whole-struct copy (sort swaps, scratch
+    copies, container adds). Either the struct is designed without padding, or the test compares field by
+    field. Quick check: `sizeof(T)` ≠ sum of field sizes.
 
 ## Plan (before any dispatch; the plan is a claim too)
 
@@ -66,8 +76,23 @@ wave-end docs tasks, tier stated. Then content:
   (after which tasks); otherwise it never runs.
 - **Build chains.** Same-wave tasks connected by a project-reference chain: each dev's gate compiles
   only its own build unit; wide gates (ones that pull in many units) run at wave end.
+- **Modules created in the same or a later wave.** A task whose module manifest references a build unit
+  that another task creates in the same or a later wave cannot compile when it starts — disjoint file
+  sets do not catch it. `wavecheck.py` warns on created modules named in an earlier/same-wave task's spec.
+- **Deleted and renamed symbols.** For every symbol or field a task deletes or renames, grep its readers
+  repo-wide when the plan is written. A reader inside a frozen test body makes the task a sealed-decision
+  question for the interview (list the bodies by name) — not a surprise at dispatch. Non-frozen readers join
+  the task's file list.
+- **Grep-count acceptance criteria are run, not predicted.** A criterion of the form "grep X → N hits" is
+  executed against the disk when the plan is written; hits in frozen folders are subtracted or listed by
+  name, or the criterion is unmeetable and gets rewritten at Finish.
 
 ## Finish (standard questions in the reviewer brief)
+
+- Types-and-tests phases (bodies written now, run by a later phase): trace every disabled/hook-waiting body
+  against the NEXT phase's plan if it is written (else the contract and a running precedent) — which
+  mechanism will make it pass, and does the fixture install everything that mechanism reads? A body that
+  agrees with the contract in isolation can still be unpassable by the planned mechanism.
 
 - Cross-module symmetry: do sibling modules handle shared concerns the same way (e.g. test fixtures
   releasing persistent resources)? Per-task QA sees each module as correct in isolation.
