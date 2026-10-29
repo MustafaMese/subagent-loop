@@ -1,6 +1,6 @@
 # Direct-verify checklists
 
-The orchestrator runs these itself, on the diff and the gate, before any QA dispatch. Each item is a
+§Per task is run by the `loop-judge` dispatch on the diff and the orchestrator's gate output (the orchestrator runs it itself only when that agent type is unavailable); §Plan and §Finish stay with the orchestrator, and so do §Per task item 4's before-dispatch half and item 13 (the judge marks them n/a). Each item is a
 check that was skipped at least once in a real run and cost a full round. The project's verification
 contract (e.g. `.subagent-loop/gate.md`) adds language- and engine-specific greps under the same headings.
 

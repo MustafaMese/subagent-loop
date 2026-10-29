@@ -23,21 +23,25 @@ subagent-loop separates those roles and turns every claim into something the orc
 flowchart LR
     A[Plan<br/>loop-planner] --> B[Verify plan]
     B --> C[Dev dispatches<br/>loop-dev / loop-transcriber]
-    C --> D[Direct-verify<br/>diff + gate]
+    C --> D[Gate<br/>orchestrator]
     D --> E[QA when warranted<br/>loop-qa]
-    E -->|findings| C
-    E --> F[Next wave]
+    E --> J[Judge<br/>loop-judge]
+    D --> J
+    J -->|FIX| C
+    J -->|ACCEPT| F[Next wave]
     F --> C
     F --> G[Finish review<br/>loop-reviewer]
     G --> H[Fix + hand-off]
 ```
 
-Your main Claude Code session is the orchestrator. It runs the two verify steps itself; everything
-that changes the project is a subagent dispatch.
+Your main Claude Code session is the orchestrator. It verifies the plan and runs the gates itself; the
+per-task diff reading is a `loop-judge` dispatch, so the orchestrator reads a short verdict instead of the
+diff. Everything that changes the project is a subagent dispatch.
 
 - **The judge never authors.** Not a one-line fix, not a change QA already wrote out. An orchestrator
   edit is unreviewed code written by the judge.
-- **Reports are claims.** Before any QA, the orchestrator reads the diff and reruns the gate itself.
+- **Reports are claims.** The orchestrator reruns the gate itself; a fresh judge reads the diff against
+  the checklist and checks each QA finding against the code before it sees QA's verdict.
 - **The plan is a claim too.** The wave table is checked mechanically before any dispatch: same-wave
   file sets are disjoint, every dependency points to an earlier wave.
 - **Parallel by construction.** The planner designs waves of tasks with disjoint file sets. The
@@ -56,6 +60,7 @@ that changes the project is a subagent dispatch.
 | `loop-dev` | sonnet | Implements one task that needs judgment | Yes |
 | `loop-transcriber` | haiku | Applies a fully specified brief; reports BLOCKED instead of improvising | Yes |
 | `loop-qa` | sonnet | Adversarial review of one task | No Edit tool; writes only its findings file |
+| `loop-judge` | opus | Per-task direct-verify + confirms/refutes each QA finding; short verdict file | No Edit tool; writes only its verdict file |
 | `loop-reviewer` | opus | Whole-branch Finish review, plan included | No Edit tool; writes only its findings file |
 
 ## Usage
@@ -141,12 +146,13 @@ Everything goes under `<repo>/.subagent-loop/`. You may want to add it to `.giti
 ```
 skills/subagent-loop/SKILL.md                     the skill
 skills/subagent-loop/references/brief-template.md brief structure every dispatch uses
-skills/subagent-loop/references/direct-verify.md  orchestrator checklists (per task, plan, Finish)
+skills/subagent-loop/references/direct-verify.md  checklists (per task → loop-judge; plan, Finish → orchestrator)
 skills/subagent-loop/references/wavecheck.py      wave-table verifier (disjoint files, dependency order, tier)
 agents/loop-planner.md
 agents/loop-dev.md
 agents/loop-transcriber.md
 agents/loop-qa.md
+agents/loop-judge.md
 agents/loop-reviewer.md
 ```
 

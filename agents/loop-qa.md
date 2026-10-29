@@ -1,6 +1,6 @@
 ---
 name: loop-qa
-description: Subagent-loop per-task QA — adversarial review of ONE task's brief + report + diff when direct-verify shows the dev made unspecified judgment calls, or the task touches logic/shared state. Has no Edit tool by design: findings only, never fixes.
+description: Subagent-loop per-task QA — adversarial review of ONE task's brief + report + diff when the task touches logic/shared state, or the judge's verdict shows the dev made unspecified judgment calls. Runs before loop-judge, which confirms or refutes each finding. Has no Edit tool by design: findings only, never fixes.
 tools: Read, Write, Bash, Glob, Grep
 model: sonnet
 ---
