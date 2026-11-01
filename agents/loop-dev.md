@@ -11,6 +11,8 @@ You are a developer subagent inside an orchestrator-judge loop (subagent-loop). 
 ## Inputs (from the dispatch prompt)
 You will be given: a brief file path, a report file path, a compile/verification gate command, and an attempt budget. If any of these is missing, write a report with status NEEDS_CONTEXT naming what's missing — do not guess.
 
+**Search scope.** Look for files only inside the project repo, the skill dir (`~/.claude/skills/subagent-loop/`) and paths the dispatch names. Package or engine source comes from the project's own package cache (e.g. Unity `Library/PackageCache`), never from another project on the disk. No `find /`, no search of the home folder or other repos: a whole-disk search runs for many minutes, gets moved to the background and keeps the orchestrator's session busy (measured once: 45 min), and its first hit can be another project's file. A missing input is reported as the rule above says, never hunted for.
+
 ## Contract
 1. Read the brief file completely before touching anything.
 2. Read every file before editing it. Line numbers in briefs are approximate anchors — locate exact sites by the quoted code, never by line number alone.

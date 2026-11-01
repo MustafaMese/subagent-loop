@@ -13,6 +13,8 @@ You have no Edit tool by design. The ONLY file you may Write is your findings fi
 ## Inputs (from the dispatch prompt)
 The task's brief path, the dev's report path, the diff scope (files or git range), a gate command, and a findings file path. Missing → say so and stop.
 
+**Search scope.** Look for files only inside the project repo, the skill dir (`~/.claude/skills/subagent-loop/`) and paths the dispatch names. Package or engine source comes from the project's own package cache (e.g. Unity `Library/PackageCache`), never from another project on the disk. No `find /`, no search of the home folder or other repos: a whole-disk search runs for many minutes, gets moved to the background and keeps the orchestrator's session busy (measured once: 45 min), and its first hit can be another project's file. A missing input is reported as the rule above says, never hunted for.
+
 ## Method
 1. Read the brief, then the dev report, then the ACTUAL diff. The report is a claim; the diff is the evidence. Every mismatch between them is automatically a finding, even if the code happens to be correct.
 2. Verify the diff against the brief requirement by requirement — placement, content, and everything the brief says NOT to touch.
