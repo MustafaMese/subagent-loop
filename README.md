@@ -27,6 +27,7 @@ flowchart LR
     C --> D[Gate<br/>orchestrator]
     D --> E[QA when warranted<br/>loop-qa]
     E --> J[Judge<br/>loop-judge]
+    E -->|clean| F
     D --> J
     J -->|FIX| C
     J -->|ACCEPT| F[Next wave]
@@ -37,7 +38,7 @@ flowchart LR
 
 Your main Claude Code session is the orchestrator. It verifies the plan and runs the gates itself; the
 per-task diff reading is a `loop-judge` dispatch, so the orchestrator reads a short verdict instead of the
-diff. Everything that changes the project is a subagent dispatch.
+diff (or, when QA came back clean, QA's findings file). Everything that changes the project is a subagent dispatch.
 
 - **The judge never authors.** Not a one-line fix, not a change QA already wrote out. An orchestrator
   edit is unreviewed code written by the judge.
