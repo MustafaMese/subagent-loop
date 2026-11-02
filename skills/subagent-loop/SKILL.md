@@ -42,6 +42,12 @@ Stopping = write the checkpoint to the ledger, report the open items, END YOUR T
 
 ## Plan mode (`plan` / `goal`)
 
+0. **Gather facts first (cheap reading for the planner).** Measured: the planner is the loop's most expensive dispatch (~31% of loop cost on one project, median ~2M weighted per run) and ~38% of it is exploratory search and reading of files it does not edit. Skip this step when the read list is ≤3 files or the goal sits in one module. Otherwise:
+   - Write 6–15 **concrete questions** from the goal and the read list, numbered `G<phase>.<n>`. Good questions are the ones the planner's own checks need: *all writers of field F* (owner contract), *all readers of symbol S repo-wide, frozen-test hits marked* (delete/rename), *exact current signature of API X* (code in plan lines), *last numbered item in contract C* ("next after"), *which tests cover X*, *where system X sits in the update order*. No open questions ("how does module M work") and no design questions: those are the planner's.
+   - Split them into 2–4 batches by module and dispatch one fresh `loop-gatherer` (haiku) per batch **in parallel**, each with its own facts file `…/<phase>-facts-<batch>.md`. They run before any dev dispatch, read-only, so the starting width does not limit them (cap: 4 in flight); record their token counts in the ledger next to the planner's.
+   - Do not read the facts files yourself. Put their paths **first** in the planner's read list (after the brief file, if any).
+   - **Stale rule:** a fact is valid while its file is unchanged. Before a later brief pastes a fact, run `git hash-object` on that fact's file and compare it with the facts file's `file hashes` line (the commit alone misses uncommitted changes, which the working tree often has); a changed hash → re-read that line yourself or drop the fact. Facts files never go to `loop-qa`, `loop-judge` or `loop-reviewer`: their value is their own reading of the diff.
+   - `loop-gatherer` type unavailable → skip this step (do not substitute a general-purpose agent on a costlier model) and log the skip.
 1. **Dispatch `loop-planner`** (Opus by default; for a tier-L plan or a re-plan after a brake fired, pass `model: fable` — effort stays high — and note it in the ledger; fall back to `general-purpose` with the same model if the type is unavailable) with: the goal or phase scope, the plan file path, a **read list**, the ledger path, and — when re-planning — the previous plan plus what remains of the goal. If a brief file exists for this work (`brief` skill), its path goes first in the read list. The read list is the KB entry point plus the pages, contract files and decision-archive sections the scope touches, picked from the KB index; unsure about a module → list its contract, not the whole KB. Never paste the KB into the prompt; the planner reads the list and names anything it had to read beyond it. Record the planner dispatch's token count in the ledger (planning cost is otherwise unmeasured).
 2. **Interview.** The planner returns open questions with recommended answers. Subagents cannot ask the user, so you run the interview: one question at a time, recommended answer first. In `auto`/`goal`: take the recommended answer, log it under "Pending user review", and continue — except blocking questions (sealed-decision conflicts), which are a brake.
 3. **Finalize via SendMessage to the same planner agent.** Finalization depends on the planner's whole context, so resuming is correct here (the resume-cost rule in "Per task" step 6 is about mechanical fixes). Re-planning in `goal` mode is the opposite case: a **fresh** planner, because the old context is stale.
@@ -129,6 +135,8 @@ When this loop runs in one of several long-lived sessions that share a single-in
 | "Width counts QA, so the gate waits for QA too" | Width limits rate. The gate waits only on writers; QA reads. |
 | "Keep the pipe full, the gate can run when it's quiet" | The quiet moment never comes by itself. Name the gate point before it is needed. |
 | "The dev found a bug in the neighbour module" | A claim. The verdict must cite that module's contract test; the "bug" is usually a tested promise. |
+| "Haiku is cheap — let gatherers prepare the reading for devs, QA and the judge too" | Measured: re-reads across agents are ~4% of loop cost; devs and QA read the 1–2 files they edit or review, and a reviewer's value is its own pass. Gather for the planner only. |
+| "Ask the gatherers how the module works" | A summary is an opinion the planner cannot check. Ask for locations and quotes; leave the understanding to the planner. |
 | "I'll just skim the diff to double-check the judge" | That is the read the judge exists to save. Open code only for a `DISAGREE` id or a calibration spot-check. |
 | "The compile gate is green, the test change is fine" | A compile gate cannot see teardown order or runtime exceptions. Run the test gate on that build unit. |
 
@@ -144,6 +152,7 @@ When this loop runs in one of several long-lived sessions that share a single-in
 - You're resuming a dev's transcript for a fix a fresh loop-transcriber brief fully specifies
 - You're reading a diff or a whole plan/draft file with no `DISAGREE` id, calibration spot-check or section reason
 - You're dispatching a research agent before reading the project's KB
+- A facts file is in a `loop-qa`, `loop-judge` or `loop-reviewer` dispatch, or a brief pastes a fact whose cited file changed since its commit
 - Two in-flight dispatches are editing the same file
 - A wave table you never mechanically verified is about to drive dispatches
 - Two sequential dispatches on an S-tier plan are editing the same file

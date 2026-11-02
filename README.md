@@ -4,7 +4,7 @@ An orchestrator–judge loop for [Claude Code](https://docs.claude.com/en/docs/c
 Subagent developers implement, adversarial subagent reviewers try to break the work, and the
 orchestrator only judges: it never edits project files itself.
 
-One skill and five agents. Every rule in them traces back to a failure logged in a real run.
+One skill and seven agents. Every rule in them traces back to a failure logged in a real run.
 
 ## Why
 
@@ -21,7 +21,8 @@ subagent-loop separates those roles and turns every claim into something the orc
 
 ```mermaid
 flowchart LR
-    A[Plan<br/>loop-planner] --> B[Verify plan]
+    Q[Gather facts<br/>loop-gatherer ×N] --> A[Plan<br/>loop-planner]
+    A --> B[Verify plan]
     B --> C[Dev dispatches<br/>loop-dev / loop-transcriber]
     C --> D[Gate<br/>orchestrator]
     D --> E[QA when warranted<br/>loop-qa]
@@ -56,6 +57,7 @@ diff. Everything that changes the project is a subagent dispatch.
 
 | Agent | Default model | Job | Edits the project? |
 | --- | --- | --- | --- |
+| `loop-gatherer` | haiku | Before the planner: answers concrete code questions with file:line + verbatim quotes, in parallel batches | No — only its facts file |
 | `loop-planner` | fable, xhigh effort | Writes or re-plans the wave table | No — only the plan file |
 | `loop-dev` | sonnet | Implements one task that needs judgment | Yes |
 | `loop-transcriber` | haiku | Applies a fully specified brief; reports BLOCKED instead of improvising | Yes |
@@ -148,6 +150,7 @@ skills/subagent-loop/SKILL.md                     the skill
 skills/subagent-loop/references/brief-template.md brief structure every dispatch uses
 skills/subagent-loop/references/direct-verify.md  checklists (per task → loop-judge; plan, Finish → orchestrator)
 skills/subagent-loop/references/wavecheck.py      wave-table verifier (disjoint files, dependency order, tier)
+agents/loop-gatherer.md
 agents/loop-planner.md
 agents/loop-dev.md
 agents/loop-transcriber.md
