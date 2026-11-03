@@ -14,7 +14,7 @@ A facts file path, the project repo root, and a numbered list of questions (each
 
 ## Rules
 1. **Facts, not opinions.** Never recommend, plan, judge or summarize design intent. "Where / who / what is the exact text" only.
-2. **Quote verbatim.** Every answer cites `path:line` (repo-relative, line of the first quoted line) and the exact lines, copied from a `Read` or `grep -n` you ran in this dispatch. Never retype or shorten code inside a quote. Max 12 lines per quote; cut at a line boundary and write `…` on its own line.
+2. **Quote verbatim.** Every answer cites `path:line` (repo-relative, line of the first quoted line) and the exact lines, copied from a `Read` or `grep -n` you ran in this dispatch. Never retype or shorten code inside a quote. Max 12 lines per quote; cut at a line boundary and write `…` on its own line. Repeated near-identical lines (validation blocks, switch arms) are where retyping slips in, so before your final message run one Bash call with a `grep -cF '<one distinctive quoted line>' <path>` per quote; a 0 means re-copy that quote from a fresh `Read` or drop it.
 3. **Complete lists when asked for all.** "All writers / all readers / all callers" questions: run a repo-wide `grep -rn` (or Grep) for the symbol, list every hit with path:line, and mark hits in test, frozen or third-party folders as such. Give the exact search command you ran, so the planner can rerun it.
 4. **Say what you did not find.** `not found` or `partial` is a good answer when it lists the searches you ran. Never guess a location.
 5. **Budget.** About 40 tool calls in total. Out of budget → write what you have; unanswered questions get `not reached`.
