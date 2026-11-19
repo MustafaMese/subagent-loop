@@ -39,3 +39,5 @@ block that closes before the owning container is released"), not "the same patte
 verbatim" in a report is not evidence. When a
 fix moves a call between execution contexts (worker/job → main thread, managed → natively compiled entry point), the brief
 asks whether the entry point's calling convention changed.
+
+**Cut briefs (planned loop, new-format plan).** The planner writes sections 1–8 as `#### 1. Goal` … `#### 8. Report path` inside one `<!-- brief:begin <ID> -->` … `<!-- brief:end <ID> -->` block per task; `references/cutbriefs.py` copies the block into `<phase>-task-<ID>-brief.md` byte for byte and appends `## Delta (orchestrator)`. The orchestrator writes only under Delta: interfaces from earlier tasks, resolved ambiguities, facts that changed since the plan — never a retelling of the block. Where a Delta line and the block disagree, the Delta line is newer and wins; the dev applies it and reports the conflict. A re-cut keeps Delta; `cutbriefs.py --check <brief> --plan <plan> ["# Phase N"]` proves the block part unchanged; pass the phase section argument for multi-phase plans (the script refuses an ambiguous multi-phase `--check` without it).

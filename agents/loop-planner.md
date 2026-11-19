@@ -32,7 +32,7 @@ Pipelined execution needs gate points: name after which tasks the mutating/funct
 
 Registration lands in the same wave as the system it registers, or the plan names the non-runnable intermediate state. A system that compiles in one wave but is only added to a scheduling table, card, or manifest in a later wave leaves any build/scene that depends on that table unrunnable in between — either put the registration in the same wave, or say explicitly in the plan which waves cannot run the affected build and who is told.
 
-Every judgement the plan could not settle from the KB becomes an open question with your recommended answer; the orchestrator runs the interview with the user and sends the answers back to you to finalize. A plan that contradicts a sealed decision is not yours to resolve: flag it as a blocking question. Say which tier the loop should run at (S / M / L, per the subagent-loop skill's sizing rules) and why.
+Every judgement the plan could not settle from the KB becomes an open question with your recommended answer; the orchestrator runs the interview with the user and sends the answers back to you to finalize. A plan that contradicts a sealed decision is not yours to resolve: flag it as a blocking question. Say which tier the loop should run at (S / M / L, per the subagent-loop skill's sizing rules (references/plan-time.md, Sizing)) and why.
 
 ## Output contract (plan file)
 
@@ -47,9 +47,35 @@ Scope, why this design, tier (S/M/L) and reason.
 Parallelism: N waves, widest wave W tasks.
 Rules the table must satisfy: file sets inside a wave are disjoint; every dependency
 points to an earlier wave; each wave ends with a docs task if any shared doc changes.
-## Task specs               # per task: files, signatures, pseudo-diffs, gate, what NOT to touch
+## Shared: <name>          # optional; context two or more blocks need, listed under their Read first
+## Task specs               # one spec block per Waves task ID — see "Task spec blocks" below
 ## Verification plan        # per-task gate, wave-end gate, phase-end acceptance
 ## Decisions taken here     # anything not already in the KB, for the ledger
 ```
 
-Your final message is data for the orchestrator: tier, wave count and width, number of open questions (blocking ones named), and the plan file path. No prose for a human.
+## Task spec blocks (the cut script's input)
+
+Each task's spec is the brief its dev will get: `references/cutbriefs.py` cuts it out of the plan byte for byte and the orchestrator adds only delta lines, so nobody retells it. Per row of the Waves table, write one block. The task ID is the first word of the Task cell (`T1 VfxView types…` → `T1`; `*` and backticks are removed from the cell first; first character alphanumeric, then letters, digits, `.`, `_`, `-`; IDs must differ case-insensitively):
+
+```
+### T1 — <title>
+<!-- brief:begin T1 -->
+#### 1. Goal
+#### 2. Read first
+#### 3. Owned files
+#### 4. Don't touch
+#### 5. Spec
+#### 6. Tests
+#### 7. Gate
+#### 8. Report path
+<!-- brief:end T1 -->
+```
+
+- The eight `#### N. <Name>` headings are the numbered sections of `references/brief-template.md`, in its order, each exactly once, each filled by that file's rules (contract surfaces quoted verbatim, "don't touch" explicit, disk facts pasted with the grep line they came from, the deviation rule verbatim under 8). Other headings inside a block are `#####` or deeper; quoted text that has its own headings goes inside a fence or a `>` quote.
+- A block is read alone. No "see above", "as in T2", "same as the previous task": what two or more blocks share goes in a `## Shared: <name>` section of the plan, and each block that needs it lists `<plan path> §Shared: <name>` under Read first.
+- 7 Gate: the exact command, per-task output paths built from the task ID. 8 Report path: `<ledger dir>/<phase>-task-<ID>-report.md`, with the `<phase>` prefix the dispatch names, then the deviation rule.
+- Markers are whole lines outside fences. No line `## Delta (orchestrator)` inside a block (the cut appends it), and no table with Task and Wave columns inside a block (wavecheck would read it as wave rows).
+- Appending a `# Phase N` to a plan whose earlier phases have no blocks: the new phase gets blocks, earlier phases stay as written.
+- Before your final message, run `python3 -I <cutbriefs.py path from the dispatch> <plan> ["# Phase N"] --phase <phase> --dry-run`; exit 0 is part of done. Exit codes: 0 ok · 1 defect (lists what to fix; not every error names an ID, e.g. malformed markers) · 2 usage · 3 old-format plan (no brief markers at all: the orchestrator writes briefs by hand).
+
+Your final message is data for the orchestrator: tier, wave count and width, number of open questions (blocking ones named), the cut script's dry-run exit code, and the plan file path. No prose for a human.
