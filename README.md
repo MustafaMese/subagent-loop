@@ -141,16 +141,22 @@ Everything goes under `<repo>/.subagent-loop/`. You may want to add it to `.giti
 
 - `progress.md` — the ledger: modes, width, decisions, task status, checkpoints, one `Task N: fix round K (source)` line per fix round (the 3-round brake counts these). After a stop or a
   context compaction, the loop trusts this file and `git log` over its own memory.
-- `<phase>-task-N-brief.md`, `-report.md`, `-qa.md` — one brief, report and QA file per task.
+- `<phase>-task-<ID>-brief.md`, `-report.md`, `-qa.md` — one brief, report and QA file per task. With a new-format plan the brief is cut from the plan by `references/cutbriefs.py` (the planner's spec block, byte for byte, plus a `## Delta (orchestrator)` tail); otherwise the orchestrator writes it.
 - The plan file and the Finish review's findings.
 
 ## Contents
 
 ```
-skills/subagent-loop/SKILL.md                     the skill
+skills/subagent-loop/SKILL.md                     the skill (every-call core)
+skills/subagent-loop/references/plan-time.md      plan mode and sizing (read when a plan is written or first taken up)
+skills/subagent-loop/references/per-task.md       per-task steps 1–8 (read before a session's first dispatch)
+skills/subagent-loop/references/finish.md         Finish review and hand-off (read when all phases are done)
 skills/subagent-loop/references/brief-template.md brief structure every dispatch uses
 skills/subagent-loop/references/direct-verify.md  checklists (per task → loop-judge; plan, Finish → orchestrator)
+skills/subagent-loop/references/multi-session.md  outer layer when several sessions share one resource
 skills/subagent-loop/references/wavecheck.py      wave-table verifier (disjoint files, dependency order, tier)
+skills/subagent-loop/references/cutbriefs.py      cuts plan spec blocks into brief files; --check proves 0 changes
+tests/                                            cutbriefs and split-check tests: python3 -I -m unittest discover -s tests
 agents/loop-gatherer.md
 agents/loop-planner.md
 agents/loop-dev.md
